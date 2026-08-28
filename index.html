@@ -1,22 +1,5 @@
 <!DOCTYPE html>
 <html lang="es-CL">
-<!-- Meta Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1414905484079392');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1094,6 +1077,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
   // ---- Config ----
   const WHATSAPP_NUMBER = "56986371171"; // formato internacional sin '+'
   const DEFAULT_MSG = "Hola, quiero saber más sobre OnGrow";
+  const SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwlVafliHmuF6ge4j2X1Vo08lNbPEVLZKh8rbglBUbmYygp6puquqKqSoKKCNiRbBb4/exec";
 
   function waLink(msg){
     return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg);
@@ -1129,7 +1113,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
   // hero visual triggers immediately (above the fold)
   setTimeout(()=>document.getElementById('heroVisual').classList.add('in-view'), 300);
 
-  // ---- Lead form -> WhatsApp ----
+  // ---- Lead form -> Google Sheet + WhatsApp ----
   const form = document.getElementById('leadForm');
   form.addEventListener('submit', function(e){
     e.preventDefault();
@@ -1137,6 +1121,16 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
     const biz = document.getElementById('fBiz').value.trim();
     const budget = document.getElementById('fBudget').value;
     const phone = document.getElementById('fPhone').value.trim();
+
+    // Respaldo: guarda el lead en Google Sheets aunque no llegue a apretar "enviar" en WhatsApp
+    if (SHEET_WEBHOOK_URL && !SHEET_WEBHOOK_URL.includes('PEGA_AQUI')) {
+      fetch(SHEET_WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ nombre: name, negocio: biz, presupuesto: budget, whatsapp: phone, pagina: location.href })
+      }).catch(()=>{ /* si falla el respaldo, no bloquea el flujo de WhatsApp */ });
+    }
 
     const msg = `Hola, soy ${name}. Mi negocio es ${biz}. Mi presupuesto mensual en anuncios es ${budget}. Mi WhatsApp es ${phone}. Quiero mi diagnóstico gratuito de OnGrow.`;
     window.open(waLink(msg), '_blank');
