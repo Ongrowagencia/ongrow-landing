@@ -183,7 +183,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
   /* ---------- HERO ---------- */
   .hero{
     position:relative;
-    padding:168px 0 100px;
+    padding:168px 0 72px;
     overflow:hidden;
   }
   .hero-bg-arc{
@@ -234,7 +234,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
   .bullet-icon svg{width:12px; height:12px; stroke:var(--blue);}
   .hero-ctas{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px;}
   .microcopy{font-size:13px; color:var(--ink-50); display:flex; align-items:center; gap:8px;}
-  .microcopy .dot-live{width:7px; height:7px; border-radius:50%; background:#2CC96D; display:inline-block; box-shadow:0 0 0 3px rgba(44,201,109,0.18);}
+  .microcopy .dot-live{width:6px; height:6px; border-radius:50%; background:#2CC96D; display:inline-block; flex-shrink:0; box-shadow:0 0 0 2px rgba(44,201,109,0.14);}
 
   /* hero chart visual */
   .hero-visual{position:relative;}
@@ -387,7 +387,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
   .service-card ul{list-style:none; display:flex; flex-direction:column; gap:8px;}
   .service-card li{font-size:13.5px; color:var(--ink-70); display:flex; gap:8px; align-items:flex-start;}
   .service-card li::before{content:'→'; color:var(--blue); font-weight:600; flex-shrink:0;}
-  .service-card.wide{grid-column:span 1;}
+  .service-card-cta{background:var(--ink); border-color:var(--ink); grid-column:span 2;}
 
   /* ---------- CASE STUDY ---------- */
   .case-wrap{
@@ -546,9 +546,17 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
     width:58px; height:58px; border-radius:50%; background:var(--blue);
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 10px 30px -8px rgba(0,82,255,0.55);
-    transition:transform .2s ease;
+    transition:transform .25s ease, opacity .25s ease;
+    opacity:0;
+    transform:scale(0.7);
+    pointer-events:none;
   }
-  .wa-float:hover{transform:scale(1.08);}
+  .wa-float.visible{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+  }
+  .wa-float.visible:hover{transform:scale(1.08);}
   .wa-float svg{width:26px; height:26px; fill:#fff;}
   .wa-float .ping{
     position:absolute; inset:0; border-radius:50%; background:var(--blue);
@@ -592,6 +600,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
     .hero{padding:130px 0 64px;}
     .process-grid{grid-template-columns:1fr;}
     .services-grid{grid-template-columns:1fr;}
+    .service-card-cta{grid-column:auto;}
     .case-content{padding:36px 26px;}
     .case-visual{padding:36px 26px;}
     .contact-form{padding:36px 26px;}
@@ -691,7 +700,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
 </section>
 
 <!-- ============ PAIN POINTS ============ -->
-<section id="dolor">
+<section id="dolor" style="border-top:1px solid var(--line); padding-top:64px;">
   <div class="container">
     <div class="section-head reveal">
       <span class="eyebrow">El problema tiene nombre</span>
@@ -812,7 +821,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
           <li>Segmentación por comportamiento de compra</li>
         </ul>
       </div>
-      <div class="service-card reveal" style="background:var(--ink); border-color:var(--ink); grid-column:span 2;">
+      <div class="service-card service-card-cta reveal">
         <div class="service-icon" style="background:rgba(255,255,255,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v6c0 5 4 9 9 9s9-4 9-9V7l-9-5Z"/></svg></div>
         <h3 style="color:#fff;">¿No sabes por dónde partir?</h3>
         <p style="color:rgba(255,255,255,0.65);">En el diagnóstico gratuito te decimos, sin vueltas, qué canal conviene primero según tu producto y tu presupuesto.</p>
@@ -948,7 +957,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
 </section>
 
 <!-- ============ FAQ ============ -->
-<section id="faq">
+<section id="faq" style="border-top:1px solid var(--line); padding-top:64px;">
   <div class="container">
     <div class="section-head center reveal" style="margin-left:auto; margin-right:auto;">
       <span class="eyebrow">Preguntas frecuentes</span>
@@ -1099,12 +1108,23 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
   }
   document.querySelectorAll('#waNav, #waHero, #waDirect, #waFooter, #waFloat').forEach(a=>{
     a.href = waLink(DEFAULT_MSG);
+    a.addEventListener('click', ()=>{
+      if (typeof fbq === 'function') fbq('track', 'Contact');
+    });
   });
 
   // ---- Nav scroll state ----
   const header = document.getElementById('siteHeader');
   window.addEventListener('scroll', ()=>{
     header.classList.toggle('scrolled', window.scrollY > 12);
+  });
+
+  // ---- WhatsApp float button: only show after scrolling past the hero ----
+  const waFloatBtn = document.getElementById('waFloat');
+  const heroSection = document.querySelector('.hero');
+  window.addEventListener('scroll', ()=>{
+    const threshold = heroSection ? heroSection.offsetTop + heroSection.offsetHeight - 200 : 500;
+    waFloatBtn.classList.toggle('visible', window.scrollY > threshold);
   });
 
   // ---- Mobile menu ----
@@ -1148,6 +1168,7 @@ src="https://www.facebook.com/tr?id=1414905484079392&ev=PageView&noscript=1"
     }
 
     const msg = `Hola, soy ${name}. Mi negocio es ${biz}. Mi presupuesto mensual en anuncios es ${budget}. Mi WhatsApp es ${phone}. Quiero mi diagnóstico gratuito de OnGrow.`;
+    if (typeof fbq === 'function') fbq('track', 'Lead');
     window.open(waLink(msg), '_blank');
 
     form.style.display = 'none';
